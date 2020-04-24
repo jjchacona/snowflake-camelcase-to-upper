@@ -1,0 +1,36 @@
+create or replace procedure change_col_name(table_name VARCHAR)
+    returns string 
+    not null
+    language javascript
+    execute as caller
+    as
+    $$
+    var col_name = '';
+    var sql_alter = "";
+    var i = 0;
+
+    // Dynamically compose the SQL statement to execute.
+    // Note that we uppercased the input parameter name.
+    var sql_command = "describe table "+ TABLE_NAME;
+    // Run the statement.
+    var stmt = snowflake.createStatement(
+           {
+           sqlText: sql_command
+           }
+        );
+    var res = stmt.execute();
+    while (res.next())  {
+    col_name = res.getColumnValue(1);
+     sql_alter = 'alter table '+ TABLE_NAME+ ' rename column "'+ col_name + '"  to '+ col_name.toUpperCase() ;
+     var stmt2 = snowflake.createStatement(
+           {
+           sqlText: sql_alter
+           }
+        );
+    stmt2.execute();
+    i=i+1;
+    }
+    return 'changed '+i+' columns names';
+    $$
+    ;
+    
